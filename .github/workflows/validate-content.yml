@@ -2,9 +2,7 @@ name: validate-content
 run-name: ${{ github.actor }} validate content
 
 on:
-  pull_request:
-    types: [ready_for_review, synchronize]
-
+  workflow_dispatch:
 concurrency:
   group: validate-content-${{ github.event.pull_request.number }}
   cancel-in-progress: true

@@ -1,12 +1,7 @@
 name: deploy-website
 
 on:
-  pull_request:
-    types: [closed]
-    paths:
-      - 'website/**'
   workflow_dispatch:
-
 permissions:
   contents: write
 
