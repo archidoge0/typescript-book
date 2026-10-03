@@ -1,0 +1,37 @@
+name: "ghav before: website-e2e"
+"on":
+  push:
+    branches:
+      - ghav/dev/255
+    paths:
+      - .ghav/before
+permissions:
+  actions: write
+  contents: read
+  issues: write
+  pull-requests: write
+jobs:
+  lint-content:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run lint script
+        run: bash ${GITHUB_WORKSPACE}/.github/workflows/lint.sh
+  compile-snippets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run compile script
+        run: bash ${GITHUB_WORKSPACE}/.github/workflows/compile.sh
+  verify-typescript-news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify TypeScript news order and locale parity
+        run: python3 .agents/skills/create-typescript-news/scripts/verify_news_order.py
+  test-github-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test GitHub Actions scripts
+        run: node --test tools/github-actions/*.test.js
