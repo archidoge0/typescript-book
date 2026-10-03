@@ -1,0 +1,64 @@
+name: "ghav before: validate-content"
+"on":
+  push:
+    branches:
+      - ghav/dev/254
+    paths:
+      - .ghav/before
+jobs:
+  lint-content:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run lint script
+        run: bash ${GITHUB_WORKSPACE}/.github/workflows/lint.sh
+  compile-snippets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run compile script
+        run: bash ${GITHUB_WORKSPACE}/.github/workflows/compile.sh
+  verify-typescript-news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify TypeScript news order and locale parity
+        run: python3 .agents/skills/create-typescript-news/scripts/verify_news_order.py
+  test-github-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test GitHub Actions scripts
+        run: node --test tools/github-actions/*.test.js
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build website
+        run: npm run build
+      - name: Run core end-to-end tests
+        run: npm run e2e
+      - name: Upload Playwright evidence
+        if: always()
+        id: evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-evidence-pr-${{ github.event.pull_request.number }}
+          path: |
+            website/playwright-report
+            website/test-results
+          if-no-files-found: error
+          retention-days: 3
